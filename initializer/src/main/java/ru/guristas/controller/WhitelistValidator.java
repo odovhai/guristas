@@ -1,11 +1,9 @@
 package ru.guristas.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +13,7 @@ import java.util.stream.Stream;
 @Controller
 @RequestMapping("/initializer/")
 @ResponseBody
+@CrossOrigin(origins = {"*"}, maxAge = 3600)
 public class WhitelistValidator {
 
     @Value("${users.filename}")
@@ -28,11 +27,13 @@ public class WhitelistValidator {
 
 
     @RequestMapping(method = RequestMethod.GET, path = "validateUser/{id}")
-    public boolean validateUser(@PathVariable String id) {
+    public ResponseEntity<Boolean> validateUser(@PathVariable String id) {
+        ResponseEntity.BodyBuilder builder = ResponseEntity.ok();
+        builder.header("Access-Control-Allow-Origin", "*");
         try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
-            return stream.anyMatch(s -> s.equals(id));
+            return builder.body(stream.anyMatch(s -> s.equals(id)));
         } catch (IOException e) {
-           return false;
+            return builder.body(null);
         }
     }
 }
